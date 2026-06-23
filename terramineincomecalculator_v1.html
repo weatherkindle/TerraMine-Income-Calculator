@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerraMine Income Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f6f9;
+            color: #000000;
+            margin: 0;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1050px;
+            width: 100%;
+            background: #ffffff;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .logo {
+            max-width: 120px;
+            height: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #000000;
+            margin-top: 0;
+            margin-bottom: 35px;
+            font-size: 1.9rem;
+        }
+        h3 {
+            color: #000000;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 5px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 45px;
+        }
+        @media (max-width: 850px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+        .reset-btn {
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid #000000;
+            padding: 6px 14px;
+            font-size: 0.88rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .reset-btn:hover {
+            background: #eaeaea;
+        }
+        .input-group {
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        label {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #000000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"], select {
+            -moz-appearance: textfield;
+            width: 100px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #a0a0a0;
+            background-color: #ffffff;
+            color: #000000;
+            text-align: right;
+            font-size: 1rem;
+        }
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #000000;
+        }
+        .total-row {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            padding-top: 12px;
+            border-top: 1px dashed #aaaaaa;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: #000000;
+        }
+        .boost-group {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #000000;
+        }
+        .results {
+            margin-top: 20px;
+            border-top: 2px solid #000000;
+            padding-top: 15px;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 1.1rem;
+            color: #000000;
+        }
+        .value {
+            font-weight: bold;
+            color: #000000;
+            font-family: monospace;
+        }
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+        .graph-container {
+            background: #ffffff;
+        }
+        .reverse-calc-container {
+            background: #ffffff;
+        }
+        .target-input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .target-input-row input[type="number"] {
+            width: 120px;
+            text-align: left;
+        }
+        .target-input-row select {
+            width: 110px;
+            text-align: left;
+        }
+        .target-results {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .target-row-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            color: #000000;
+        }
+        .target-val {
+            font-weight: bold;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="logo.png" alt="TerraMine Logo" class="logo">
+        </div>
+        <h1>TerraMine Income Calculator</h1>
+        
+        <div class="dashboard-grid">
+            <div>
+                <h3>Mine Configuration</h3>
+                
+                <button type="button" class="reset-btn" onclick="resetForm()">Reset</button>
+                
+                <div class="input-group">
+                    <label><span>🪨</span> Rock Mines ($0.002851/mo):</label>
+                    <input type="number" id="rock" value="0" min="0" oninput="calculate()">
+                </div>
+                <div class="input-group">
+                    <label><span>🌑</span> Coal Mines ($0.004147/mo):</label>
+                    <input type="number" id="coal" value="0" min="0" oninput="calculate()">
+                </div>
+                <div class="input-group">
+                    <label><span>🪙</span> Gold Mines ($0.005702/mo):</label>
+                    <input type="number" id="gold" value="0" min="0" oninput="calculate()">
+                </div>
+                <div class="input-group">
+                    <label><span>💎</span> Diamond Mines ($0.011404/mo):</label>
+                    <input type="number" id="diamond" value="0" min="0" oninput="calculate()">
+                </div>
+                
+                <div class="total-row">
+                    <span>Total Mines:</span>
+                    <span id="totalMines">0</span>
+                </div>
+                
+                <div class="boost-group">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Hours Boosted Per Day (20x):</label>
+                        <input type="number" id="boostHours" value="0" min="0" max="24" step="0.5" oninput="calculate()">
+                    </div>
+                </div>
+                
+                <div class="results">
+                    <div class="result-row">
+                        <span>Daily Income:</span>
+                        <span class="value" id="daily">$0.000</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Weekly Income:</span>
+                        <span class="value" id="weekly">$0.000</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Monthly Income:</span>
+                        <span class="value" id="monthly">$0.000</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Yearly Income:</span>
+                        <span class="value" id="yearly">$0.000</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="graph-container">
+                    <h3>10-Year Reinvestment Graph <span style="font-size: 0.9rem; font-weight: normal; font-style: italic;">(Assuming you reinvest all income)</span></h3>
+                    
+                    <svg id="projectionGraph" viewBox="0 0 500 200" style="width: 100%; height: auto; background: #fafafa; border: 1px solid #dcdcdc; border-radius: 6px; margin-top: 10px;">
+                        </svg>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.88rem; font-weight: 500;">
+                        <span>Start: <span id="graphStart" style="font-family:monospace;">$0.000</span>/mo</span>
+                        <span>Year 10: <span id="graphEnd" style="font-family:monospace;">$0.000</span>/mo</span>
+                    </div>
+                </div>
+                
+                <div class="reverse-calc-container">
+                    <h3>Target Income Reverse Calculator</h3>
+                    <div class="target-input-row">
+                        <label>I want to earn ($):</label>
+                        <input type="number" id="targetAmount" value="0" min="0" step="0.01" oninput="calculateReverse()">
+                        <select id="targetPeriod" onchange="calculateReverse()">
+                            <option value="daily">Per Day</option>
+                            <option value="weekly">Per Week</option>
+                            <option value="monthly">Per Month</option>
+                            <option value="yearly">Per Year</option>
+                        </select>
+                    </div>
+                    
+                    <div class="target-results">
+                        <div class="target-row-item">
+                            <span>🪨 Rock Mines needed (61%):</span>
+                            <span class="target-val" id="reqRock">0</span>
+                        </div>
+                        <div class="target-row-item">
+                            <span>🌑 Coal Mines needed (30%):</span>
+                            <span class="target-val" id="reqCoal">0</span>
+                        </div>
+                        <div class="target-row-item">
+                            <span>🪙 Gold Mines needed (8%):</span>
+                            <span class="target-val" id="reqGold">0</span>
+                        </div>
+                        <div class="target-row-item">
+                            <span>💎 Diamond Mines needed (1%):</span>
+                            <span class="target-val" id="reqDiamond">0</span>
+                        </div>
+                        <div class="target-row-item" style="border-top: 1px dashed #777; margin-top: 4px; padding-top: 6px; font-weight: bold;">
+                            <span>Total Combined Mines:</span>
+                            <span class="target-val" id="reqTotal">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const RATES = {
+            rock: 0.002851,
+            coal: 0.004147,
+            gold: 0.005702,
+            diamond: 0.011404
+        };
+
+        let globalHistory = [];
+        const padLeft = 60;
+        const padRight = 20;
+        const padTop = 20;
+        const padBottom = 25;
+        const width = 500;
+        const height = 200;
+        const cWidth = width - padLeft - padRight;
+        const cHeight = height - padTop - padBottom;
+        const xAxisY = height - padBottom;
+
+        function calculate() {
+            const rock = parseInt(document.getElementById('rock').value) || 0;
+            const coal = parseInt(document.getElementById('coal').value) || 0;
+            const gold = parseInt(document.getElementById('gold').value) || 0;
+            const diamond = parseInt(document.getElementById('diamond').value) || 0;
+            let boostHours = parseFloat(document.getElementById('boostHours').value) || 0;
+            const acreCost = 100;
+            
+            if (boostHours > 24) boostHours = 24;
+            if (boostHours < 0) boostHours = 0;
+
+            const totalMines = rock + coal + gold + diamond;
+            document.getElementById('totalMines').innerText = totalMines;
+
+            const baseMonthly = (rock * RATES.rock) + (coal * RATES.coal) + (gold * RATES.gold) + (diamond * RATES.diamond);
+            const baseDaily = (baseMonthly * 12) / 365;
+
+            const boostedFraction = boostHours / 24;
+            const unboostedFraction = (24 - boostHours) / 24;
+            const dailyMultiplier = (boostedFraction * 20) + (unboostedFraction * 1);
+
+            const dailyIncome = baseDaily * dailyMultiplier;
+            const weeklyIncome = dailyIncome * 7;
+            const yearlyIncome = dailyIncome * 365;
+            const monthlyIncome = yearlyIncome / 12;
+
+            document.getElementById('daily').innerText = '$' + dailyIncome.toFixed(3);
+            document.getElementById('weekly').innerText = '$' + weeklyIncome.toFixed(3);
+            document.getElementById('monthly').innerText = '$' + monthlyIncome.toFixed(3);
+            document.getElementById('yearly').innerText = '$' + yearlyIncome.toFixed(3);
+
+            let rCount = rock;
+            let cCount = coal;
+            let gCount = gold;
+            let dCount = diamond;
+            let unspentTB = 0;
+            globalHistory = [];
+
+            for (let m = 0; m <= 120; m++) {
+                let mBase = (rCount * RATES.rock) + (cCount * RATES.coal) + (gCount * RATES.gold) + (dCount * RATES.diamond);
+                let dBase = (mBase * 12) / 365;
+                let mIncomeWithBoost = (dBase * dailyMultiplier * 365) / 12;
+                
+                globalHistory.push(mIncomeWithBoost);
+
+                unspentTB += mIncomeWithBoost * 30;
+                if (unspentTB >= acreCost) {
+                    let newAcres = Math.floor(unspentTB / acreCost);
+                    unspentTB -= newAcres * acreCost;
+                    
+                    rCount += newAcres * 0.61;
+                    cCount += newAcres * 0.30;
+                    gCount += newAcres * 0.08;
+                    dCount += newAcres * 0.01;
+                }
+            }
+
+            drawGraph(globalHistory);
+            calculateReverse();
+        }
+
+        function drawGraph(history) {
+            const svg = document.getElementById('projectionGraph');
+            svg.innerHTML = '';
+            
+            const min = 0;
+            const max = Math.max(...history);
+            const range = max || 1;
+
+            let axis = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            axis.setAttribute("d", `M ${padLeft} ${padTop} L ${padLeft} ${xAxisY} L ${width - padRight} ${xAxisY}`);
+            axis.setAttribute("stroke", "#000000");
+            axis.setAttribute("stroke-width", "1.5");
+            axis.setAttribute("fill", "none");
+            svg.appendChild(axis);
+
+            let points = [];
+            for (let i = 0; i < history.length; i++) {
+                let x = padLeft + (i / (history.length - 1)) * cWidth;
+                let y = xAxisY - ((history[i] - min) / range) * cHeight;
+                points.push(`${x},${y}`);
+            }
+
+            let line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            line.setAttribute("d", "M " + points.join(" L "));
+            line.setAttribute("stroke", "#000000");
+            line.setAttribute("stroke-width", "2");
+            line.setAttribute("fill", "none");
+            svg.appendChild(line);
+
+            const markers = [
+                { idx: 0, label: "Start" },
+                { idx: 120, label: "Year 10" }
+            ];
+
+            markers.forEach(m => {
+                let x = padLeft + (m.idx / (history.length - 1)) * cWidth;
+                
+                let txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                txt.setAttribute("x", x);
+                txt.setAttribute("y", height - 6);
+                txt.setAttribute("text-anchor", "middle");
+                txt.setAttribute("font-size", "10px");
+                txt.textContent = m.label;
+                svg.appendChild(txt);
+
+                let tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                tick.setAttribute("x1", x); tick.setAttribute("y1", xAxisY); tick.setAttribute("x2", x); tick.setAttribute("y2", xAxisY + 4);
+                tick.setAttribute("stroke", "#000000");
+                svg.appendChild(tick);
+            });
+
+            const yLabels = [min, max];
+            yLabels.forEach((v, idx) => {
+                let yPos = idx === 0 ? xAxisY : padTop + 4;
+                let txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                txt.setAttribute("x", padLeft - 6);
+                txt.setAttribute("y", yPos);
+                txt.setAttribute("text-anchor", "end");
+                txt.setAttribute("font-size", "10px");
+                txt.textContent = "$" + v.toFixed(3);
+                svg.appendChild(txt);
+            });
+
+            const tooltipGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            tooltipGroup.setAttribute("id", "tipGroup");
+            tooltipGroup.style.display = "none";
+            tooltipGroup.style.pointerEvents = "none";
+
+            const tipBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            tipBg.setAttribute("id", "tipBg");
+            tipBg.setAttribute("fill", "#ffffff");
+            tipBg.setAttribute("stroke", "#000000");
+            tipBg.setAttribute("stroke-width", "1");
+            tipBg.setAttribute("rx", "4");
+            tipBg.setAttribute("ry", "4");
+            tipBg.setAttribute("width", "110");
+            tipBg.setAttribute("height", "22");
+            tooltipGroup.appendChild(tipBg);
+
+            const tipTxt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            tipTxt.setAttribute("id", "tipTxt");
+            tipTxt.setAttribute("fill", "#000000");
+            tipTxt.setAttribute("font-size", "10px");
+            tipTxt.setAttribute("font-weight", "bold");
+            tipTxt.setAttribute("text-anchor", "middle");
+            tooltipGroup.appendChild(tipTxt);
+
+            const tipCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            tipCircle.setAttribute("r", "4");
+            tipCircle.setAttribute("fill", "#000000");
+            tooltipGroup.appendChild(tipCircle);
+
+            svg.appendChild(tooltipGroup);
+
+            document.getElementById('graphStart').innerText = '$' + history[0].toFixed(3);
+            document.getElementById('graphEnd').innerText = '$' + history[120].toFixed(3);
+        }
+
+        const svgElement = document.getElementById('projectionGraph');
+        
+        svgElement.addEventListener('mousemove', (e) => {
+            if (!globalHistory.length) return;
+            
+            const rect = svgElement.getBoundingClientRect();
+            const mouseX = ((e.clientX - rect.left) / rect.width) * width;
+            
+            if (mouseX >= padLeft && mouseX <= (width - padRight)) {
+                const pct = (mouseX - padLeft) / cWidth;
+                let idx = Math.round(pct * (globalHistory.length - 1));
+                if (idx < 0) idx = 0;
+                if (idx >= globalHistory.length) idx = globalHistory.length - 1;
+                
+                const max = Math.max(...globalHistory) || 1;
+                const dataX = padLeft + (idx / (globalHistory.length - 1)) * cWidth;
+                const dataY = xAxisY - ((globalHistory[idx] - 0) / max) * cHeight;
+                
+                const tipGroup = document.getElementById('tipGroup');
+                tipGroup.setAttribute('transform', `translate(${dataX}, ${dataY})`);
+                tipGroup.style.display = 'block';
+                
+                // Convert month index to year timeline (0 to 10)
+                const yearVal = (idx / 12).toFixed(1);
+                const labelStr = `Year ${yearVal}`;
+                document.getElementById('tipTxt').textContent = `${labelStr}: $${globalHistory[idx].toFixed(3)}`;
+                
+                const bg = document.getElementById('tipBg');
+                const txt = document.getElementById('tipTxt');
+                
+                if (dataX > 380) {
+                    bg.setAttribute('x', '-115');
+                    txt.setAttribute('x', '-57');
+                } else if (dataX < 100) {
+                    bg.setAttribute('x', '5');
+                    txt.setAttribute('x', '60');
+                } else {
+                    bg.setAttribute('x', '-55');
+                    txt.setAttribute('x', '0');
+                }
+                bg.setAttribute('y', '-30');
+                txt.setAttribute('y', '-16');
+            } else {
+                document.getElementById('tipGroup').style.display = 'none';
+            }
+        });
+
+        svgElement.addEventListener('mouseleave', () => {
+            const tipGroup = document.getElementById('tipGroup');
+            if (tipGroup) tipGroup.style.display = 'none';
+        });
+
+        function calculateReverse() {
+            const targetAmount = parseFloat(document.getElementById('targetAmount').value) || 0;
+            const targetPeriod = document.getElementById('targetPeriod').value;
+            let boostHours = parseFloat(document.getElementById('boostHours').value) || 0;
+
+            if (boostHours > 24) boostHours = 24;
+            if (boostHours < 0) boostHours = 0;
+
+            const boostedFraction = boostHours / 24;
+            const unboostedFraction = (24 - boostHours) / 24;
+            const dailyMultiplier = (boostedFraction * 20) + (unboostedFraction * 1);
+
+            let targetDaily = 0;
+            if (targetPeriod === 'daily') targetDaily = targetAmount;
+            else if (targetPeriod === 'weekly') targetDaily = targetAmount / 7;
+            else if (targetPeriod === 'monthly') targetDaily = (targetAmount * 12) / 365;
+            else if (targetPeriod === 'yearly') targetDaily = targetAmount / 365;
+
+            const basePackMonthly = (61 * RATES.rock) + (30 * RATES.coal) + (8 * RATES.gold) + (1 * RATES.diamond);
+            const basePackDaily = (basePackMonthly * 12) / 365;
+            const boostedPackDaily = basePackDaily * dailyMultiplier;
+
+            let totalMinesNeeded = 0;
+            if (boostedPackDaily > 0) {
+                totalMinesNeeded = (targetDaily / boostedPackDaily) * 100;
+            }
+
+            const reqRock = Math.ceil(totalMinesNeeded * 0.61);
+            const reqCoal = Math.ceil(totalMinesNeeded * 0.30);
+            const reqGold = Math.ceil(totalMinesNeeded * 0.08);
+            const reqDiamond = Math.ceil(totalMinesNeeded * 0.01);
+            const reqTotal = reqRock + reqCoal + reqGold + reqDiamond;
+
+            document.getElementById('reqRock').innerText = reqRock.toLocaleString();
+            document.getElementById('reqCoal').innerText = reqCoal.toLocaleString();
+            document.getElementById('reqGold').innerText = reqGold.toLocaleString();
+            document.getElementById('reqDiamond').innerText = reqDiamond.toLocaleString();
+            document.getElementById('reqTotal').innerText = reqTotal.toLocaleString();
+        }
+
+        function resetForm() {
+            document.getElementById('rock').value = 0;
+            document.getElementById('coal').value = 0;
+            document.getElementById('gold').value = 0;
+            document.getElementById('diamond').value = 0;
+            document.getElementById('boostHours').value = 0;
+            document.getElementById('targetAmount').value = 0;
+            document.getElementById('targetPeriod').value = 'daily';
+            calculate();
+        }
+
+        calculate();
+    </script>
+</body>
+</html>
