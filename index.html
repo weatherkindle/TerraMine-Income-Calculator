@@ -116,13 +116,6 @@
             font-weight: bold;
             color: #000000;
         }
-        .boost-group {
-            margin: 20px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #000000;
-        }
         .results {
             margin-top: 20px;
             border-top: 2px solid #000000;
@@ -194,25 +187,26 @@
         <h1>TerraMine Income Calculator</h1>
         
         <div class="dashboard-grid">
+            <!-- LEFT COLUMN -->
             <div>
                 <h3>Mine Configuration</h3>
                 
                 <button type="button" class="reset-btn" onclick="resetForm()">Reset</button>
                 
                 <div class="input-group">
-                    <label><span>🪨</span> Rock Mines ($0.002851/mo):</label>
+                    <label><span>🪨</span> Rock Mines ($0.002851/month):</label>
                     <input type="number" id="rock" value="0" min="0" oninput="calculate()">
                 </div>
                 <div class="input-group">
-                    <label><span>🌑</span> Coal Mines ($0.004147/mo):</label>
+                    <label><span>🌑</span> Coal Mines ($0.004147/month):</label>
                     <input type="number" id="coal" value="0" min="0" oninput="calculate()">
                 </div>
                 <div class="input-group">
-                    <label><span>🪙</span> Gold Mines ($0.005702/mo):</label>
+                    <label><span>🪙</span> Gold Mines ($0.005702/month):</label>
                     <input type="number" id="gold" value="0" min="0" oninput="calculate()">
                 </div>
                 <div class="input-group">
-                    <label><span>💎</span> Diamond Mines ($0.011404/mo):</label>
+                    <label><span>💎</span> Diamond Mines ($0.011404/month):</label>
                     <input type="number" id="diamond" value="0" min="0" oninput="calculate()">
                 </div>
                 
@@ -221,11 +215,17 @@
                     <span id="totalMines">0</span>
                 </div>
                 
-                <div class="boost-group">
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <label>Hours Boosted Per Day (20x):</label>
-                        <input type="number" id="boostHours" value="0" min="0" max="24" step="0.5" oninput="calculate()">
-                    </div>
+                <div class="input-group">
+                    <label>Hours Boosted Per Day (20x):</label>
+                    <input type="number" id="boostHours" value="0" min="0" max="24" step="0.5" oninput="calculate()">
+                </div>
+                <div class="input-group">
+                    <label>Check-ins per day:</label>
+                    <input type="number" id="checkIns" value="0" min="0" oninput="calculate()">
+                </div>
+                <div class="input-group">
+                    <label>Referrals per year:</label>
+                    <input type="number" id="referrals" value="0" min="0" oninput="calculate()">
                 </div>
                 
                 <div class="results">
@@ -245,19 +245,25 @@
                         <span>Yearly Income:</span>
                         <span class="value" id="yearly">$0.000</span>
                     </div>
+                    <div class="result-row">
+                        <span>Pay per ad:</span>
+                        <span class="value" id="payPerAd">$0.000</span>
+                    </div>
                 </div>
             </div>
             
+            <!-- RIGHT COLUMN -->
             <div class="right-panel">
                 <div class="graph-container">
-                    <h3>10-Year Reinvestment Graph <span style="font-size: 0.9rem; font-weight: normal; font-style: italic;">(Assuming you reinvest all income)</span></h3>
+                    <h3>10-Year Simulation</h3>
                     
                     <svg id="projectionGraph" viewBox="0 0 500 200" style="width: 100%; height: auto; background: #fafafa; border: 1px solid #dcdcdc; border-radius: 6px; margin-top: 10px;">
-                        </svg>
+                        <!-- Graph elements dynamically injected -->
+                    </svg>
                     
                     <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.88rem; font-weight: 500;">
-                        <span>Start: <span id="graphStart" style="font-family:monospace;">$0.000</span>/mo</span>
-                        <span>Year 10: <span id="graphEnd" style="font-family:monospace;">$0.000</span>/mo</span>
+                        <span>Start: <span id="graphStart" style="font-family:monospace;">$0.000</span>/month</span>
+                        <span>Year 10: <span id="graphEnd" style="font-family:monospace;">$0.000</span>/month</span>
                     </div>
                 </div>
                 
@@ -320,22 +326,30 @@
         const cHeight = height - padTop - padBottom;
         const xAxisY = height - padBottom;
 
+        function formatCurrency(amount) {
+            return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        }
+
         function calculate() {
             const rock = parseInt(document.getElementById('rock').value) || 0;
             const coal = parseInt(document.getElementById('coal').value) || 0;
             const gold = parseInt(document.getElementById('gold').value) || 0;
             const diamond = parseInt(document.getElementById('diamond').value) || 0;
+            const checkIns = parseInt(document.getElementById('checkIns').value) || 0;
+            const referrals = parseInt(document.getElementById('referrals').value) || 0;
             let boostHours = parseFloat(document.getElementById('boostHours').value) || 0;
-            const acreCost = 100;
+            const acreCost = 100; // 100 TB per acre
+            const tbPerDollar = 200; // Reinvestment rate: $1.00 = 200 TB
             
             if (boostHours > 24) boostHours = 24;
             if (boostHours < 0) boostHours = 0;
 
             const totalMines = rock + coal + gold + diamond;
-            document.getElementById('totalMines').innerText = totalMines;
+            document.getElementById('totalMines').innerText = totalMines.toLocaleString();
 
             const baseMonthly = (rock * RATES.rock) + (coal * RATES.coal) + (gold * RATES.gold) + (diamond * RATES.diamond);
             const baseDaily = (baseMonthly * 12) / 365;
+            const baseHourly = baseDaily / 24;
 
             const boostedFraction = boostHours / 24;
             const unboostedFraction = (24 - boostHours) / 24;
@@ -346,10 +360,14 @@
             const yearlyIncome = dailyIncome * 365;
             const monthlyIncome = yearlyIncome / 12;
 
-            document.getElementById('daily').innerText = '$' + dailyIncome.toFixed(3);
-            document.getElementById('weekly').innerText = '$' + weeklyIncome.toFixed(3);
-            document.getElementById('monthly').innerText = '$' + monthlyIncome.toFixed(3);
-            document.getElementById('yearly').innerText = '$' + yearlyIncome.toFixed(3);
+            // 1 ad = 30 mins (0.5 hrs) at 20x boost = 10 hours of base production value
+            const payPerAd = baseHourly * 10;
+
+            document.getElementById('daily').innerText = formatCurrency(dailyIncome);
+            document.getElementById('weekly').innerText = formatCurrency(weeklyIncome);
+            document.getElementById('monthly').innerText = formatCurrency(monthlyIncome);
+            document.getElementById('yearly').innerText = formatCurrency(yearlyIncome);
+            document.getElementById('payPerAd').innerText = formatCurrency(payPerAd);
 
             let rCount = rock;
             let cCount = coal;
@@ -358,6 +376,11 @@
             let unspentTB = 0;
             globalHistory = [];
 
+            // Calculate monthly TB earned strictly from check-ins (14 TB per check-in)
+            const checkInMonthlyTB = (checkIns * 14 * 365) / 12;
+            // Calculate monthly TB earned from referrals (1,000 TB per referral)
+            const referralMonthlyTB = (referrals * 1000) / 12;
+
             for (let m = 0; m <= 120; m++) {
                 let mBase = (rCount * RATES.rock) + (cCount * RATES.coal) + (gCount * RATES.gold) + (dCount * RATES.diamond);
                 let dBase = (mBase * 12) / 365;
@@ -365,11 +388,14 @@
                 
                 globalHistory.push(mIncomeWithBoost);
 
-                unspentTB += mIncomeWithBoost * 30;
+                // Convert dollar income to TB ($1 = 200 TB) + add monthly check-in TB + referral TB
+                unspentTB += (mIncomeWithBoost * tbPerDollar) + checkInMonthlyTB + referralMonthlyTB;
+
                 if (unspentTB >= acreCost) {
                     let newAcres = Math.floor(unspentTB / acreCost);
                     unspentTB -= newAcres * acreCost;
                     
+                    // 1 acre = 1 mine with rarity weights (0.61 Rock, 0.30 Coal, 0.08 Gold, 0.01 Diamond)
                     rCount += newAcres * 0.61;
                     cCount += newAcres * 0.30;
                     gCount += newAcres * 0.08;
@@ -440,7 +466,7 @@
                 txt.setAttribute("y", yPos);
                 txt.setAttribute("text-anchor", "end");
                 txt.setAttribute("font-size", "10px");
-                txt.textContent = "$" + v.toFixed(3);
+                txt.textContent = formatCurrency(v);
                 svg.appendChild(txt);
             });
 
@@ -456,7 +482,7 @@
             tipBg.setAttribute("stroke-width", "1");
             tipBg.setAttribute("rx", "4");
             tipBg.setAttribute("ry", "4");
-            tipBg.setAttribute("width", "110");
+            tipBg.setAttribute("width", "130");
             tipBg.setAttribute("height", "22");
             tooltipGroup.appendChild(tipBg);
 
@@ -475,8 +501,8 @@
 
             svg.appendChild(tooltipGroup);
 
-            document.getElementById('graphStart').innerText = '$' + history[0].toFixed(3);
-            document.getElementById('graphEnd').innerText = '$' + history[120].toFixed(3);
+            document.getElementById('graphStart').innerText = formatCurrency(history[0]);
+            document.getElementById('graphEnd').innerText = formatCurrency(history[120]);
         }
 
         const svgElement = document.getElementById('projectionGraph');
@@ -501,22 +527,21 @@
                 tipGroup.setAttribute('transform', `translate(${dataX}, ${dataY})`);
                 tipGroup.style.display = 'block';
                 
-                // Convert month index to year timeline (0 to 10)
                 const yearVal = (idx / 12).toFixed(1);
                 const labelStr = `Year ${yearVal}`;
-                document.getElementById('tipTxt').textContent = `${labelStr}: $${globalHistory[idx].toFixed(3)}`;
+                document.getElementById('tipTxt').textContent = `${labelStr}: ${formatCurrency(globalHistory[idx])}`;
                 
                 const bg = document.getElementById('tipBg');
                 const txt = document.getElementById('tipTxt');
                 
-                if (dataX > 380) {
-                    bg.setAttribute('x', '-115');
-                    txt.setAttribute('x', '-57');
-                } else if (dataX < 100) {
+                if (dataX > 370) {
+                    bg.setAttribute('x', '-135');
+                    txt.setAttribute('x', '-70');
+                } else if (dataX < 110) {
                     bg.setAttribute('x', '5');
-                    txt.setAttribute('x', '60');
+                    txt.setAttribute('x', '70');
                 } else {
-                    bg.setAttribute('x', '-55');
+                    bg.setAttribute('x', '-65');
                     txt.setAttribute('x', '0');
                 }
                 bg.setAttribute('y', '-30');
@@ -576,6 +601,8 @@
             document.getElementById('coal').value = 0;
             document.getElementById('gold').value = 0;
             document.getElementById('diamond').value = 0;
+            document.getElementById('checkIns').value = 0;
+            document.getElementById('referrals').value = 0;
             document.getElementById('boostHours').value = 0;
             document.getElementById('targetAmount').value = 0;
             document.getElementById('targetPeriod').value = 'daily';
