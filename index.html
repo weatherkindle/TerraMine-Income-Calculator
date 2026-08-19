@@ -255,7 +255,7 @@
             <!-- RIGHT COLUMN -->
             <div class="right-panel">
                 <div class="graph-container">
-                    <h3>10-Year Simulation</h3>
+                    <h3>5-Year Simulation</h3>
                     
                     <svg id="projectionGraph" viewBox="0 0 500 200" style="width: 100%; height: auto; background: #fafafa; border: 1px solid #dcdcdc; border-radius: 6px; margin-top: 10px;">
                         <!-- Graph elements dynamically injected -->
@@ -263,7 +263,7 @@
                     
                     <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.88rem; font-weight: 500;">
                         <span>Start: <span id="graphStart" style="font-family:monospace;">$0.000</span>/month</span>
-                        <span>Year 10: <span id="graphEnd" style="font-family:monospace;">$0.000</span>/month</span>
+                        <span>Year 5: <span id="graphEnd" style="font-family:monospace;">$0.000</span>/month</span>
                     </div>
                 </div>
                 
@@ -381,7 +381,7 @@
             // Calculate monthly TB earned from referrals (1,000 TB per referral)
             const referralMonthlyTB = (referrals * 1000) / 12;
 
-            for (let m = 0; m <= 120; m++) {
+            for (let m = 0; m <= 60; m++) {
                 let mBase = (rCount * RATES.rock) + (cCount * RATES.coal) + (gCount * RATES.gold) + (dCount * RATES.diamond);
                 let dBase = (mBase * 12) / 365;
                 let mIncomeWithBoost = (dBase * dailyMultiplier * 365) / 12;
@@ -438,7 +438,7 @@
 
             const markers = [
                 { idx: 0, label: "Start" },
-                { idx: 120, label: "Year 10" }
+                { idx: 60, label: "Year 5" }
             ];
 
             markers.forEach(m => {
@@ -502,7 +502,7 @@
             svg.appendChild(tooltipGroup);
 
             document.getElementById('graphStart').innerText = formatCurrency(history[0]);
-            document.getElementById('graphEnd').innerText = formatCurrency(history[120]);
+            document.getElementById('graphEnd').innerText = formatCurrency(history[60]);
         }
 
         const svgElement = document.getElementById('projectionGraph');
