@@ -224,6 +224,10 @@
                     <input type="number" id="checkIns" value="0" min="0" oninput="calculate()">
                 </div>
                 <div class="input-group">
+                    <label>Check-ins you receive per day:</label>
+                    <input type="number" id="receivedCheckIns" value="0" min="0" oninput="calculate()">
+                </div>
+                <div class="input-group">
                     <label>Referrals per year:</label>
                     <input type="number" id="referrals" value="0" min="0" oninput="calculate()">
                 </div>
@@ -315,6 +319,8 @@
             diamond: 0.011404
         };
 
+        const MONTHLY_CAP = 200.00;
+
         let globalHistory = [];
         const padLeft = 60;
         const padRight = 20;
@@ -336,10 +342,11 @@
             const gold = parseInt(document.getElementById('gold').value) || 0;
             const diamond = parseInt(document.getElementById('diamond').value) || 0;
             const checkIns = parseInt(document.getElementById('checkIns').value) || 0;
+            const receivedCheckIns = parseInt(document.getElementById('receivedCheckIns').value) || 0;
             const referrals = parseInt(document.getElementById('referrals').value) || 0;
             let boostHours = parseFloat(document.getElementById('boostHours').value) || 0;
-            const acreCost = 100; // 100 TB per acre
-            const tbPerDollar = 200; // Reinvestment rate: $1.00 = 200 TB
+            const acreCost = 100;
+            const tbPerDollar = 300;
             
             if (boostHours > 24) boostHours = 24;
             if (boostHours < 0) boostHours = 0;
@@ -348,17 +355,18 @@
             document.getElementById('totalMines').innerText = totalMines.toLocaleString();
 
             const baseMonthly = (rock * RATES.rock) + (coal * RATES.coal) + (gold * RATES.gold) + (diamond * RATES.diamond);
-            const baseDaily = (baseMonthly * 12) / 365;
-            const baseHourly = baseDaily / 24;
+            const baseHourly = (baseMonthly * 12) / (365 * 24);
 
             const boostedFraction = boostHours / 24;
             const unboostedFraction = (24 - boostHours) / 24;
             const dailyMultiplier = (boostedFraction * 20) + (unboostedFraction * 1);
 
-            const dailyIncome = baseDaily * dailyMultiplier;
+            const rawMonthlyIncome = baseMonthly * dailyMultiplier;
+            const monthlyIncome = Math.min(rawMonthlyIncome, MONTHLY_CAP);
+            
+            const dailyIncome = (monthlyIncome * 12) / 365;
             const weeklyIncome = dailyIncome * 7;
-            const yearlyIncome = dailyIncome * 365;
-            const monthlyIncome = yearlyIncome / 12;
+            const yearlyIncome = monthlyIncome * 12;
 
             // 1 ad = 30 mins (0.5 hrs) at 20x boost = 10 hours of base production value
             const payPerAd = baseHourly * 10;
@@ -376,26 +384,23 @@
             let unspentTB = 0;
             globalHistory = [];
 
-            // Calculate monthly TB earned strictly from check-ins (14 TB per check-in)
             const checkInMonthlyTB = (checkIns * 14 * 365) / 12;
-            // Calculate monthly TB earned from referrals (1,000 TB per referral)
+            const receivedCheckInMonthlyTB = (receivedCheckIns * 1 * 365) / 12;
             const referralMonthlyTB = (referrals * 1000) / 12;
 
             for (let m = 0; m <= 60; m++) {
                 let mBase = (rCount * RATES.rock) + (cCount * RATES.coal) + (gCount * RATES.gold) + (dCount * RATES.diamond);
-                let dBase = (mBase * 12) / 365;
-                let mIncomeWithBoost = (dBase * dailyMultiplier * 365) / 12;
+                let rawMIncome = mBase * dailyMultiplier;
+                let mIncomeWithBoost = Math.min(rawMIncome, MONTHLY_CAP);
                 
                 globalHistory.push(mIncomeWithBoost);
 
-                // Convert dollar income to TB ($1 = 200 TB) + add monthly check-in TB + referral TB
-                unspentTB += (mIncomeWithBoost * tbPerDollar) + checkInMonthlyTB + referralMonthlyTB;
+                unspentTB += (mIncomeWithBoost * tbPerDollar) + checkInMonthlyTB + receivedCheckInMonthlyTB + referralMonthlyTB;
 
                 if (unspentTB >= acreCost) {
                     let newAcres = Math.floor(unspentTB / acreCost);
                     unspentTB -= newAcres * acreCost;
                     
-                    // 1 acre = 1 mine with rarity weights (0.61 Rock, 0.30 Coal, 0.08 Gold, 0.01 Diamond)
                     rCount += newAcres * 0.61;
                     cCount += newAcres * 0.30;
                     gCount += newAcres * 0.08;
@@ -412,7 +417,10 @@
             svg.innerHTML = '';
             
             const min = 0;
-            const max = Math.max(...history);
+            // Cap Y-axis ceiling at $200.00 maximum
+            let max = Math.max(...history, 0.001);
+            if (max > MONTHLY_CAP) max = MONTHLY_CAP;
+
             const range = max || 1;
 
             let axis = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -519,7 +527,9 @@
                 if (idx < 0) idx = 0;
                 if (idx >= globalHistory.length) idx = globalHistory.length - 1;
                 
-                const max = Math.max(...globalHistory) || 1;
+                let max = Math.max(...globalHistory, 0.001);
+                if (max > MONTHLY_CAP) max = MONTHLY_CAP;
+
                 const dataX = padLeft + (idx / (globalHistory.length - 1)) * cWidth;
                 const dataY = xAxisY - ((globalHistory[idx] - 0) / max) * cHeight;
                 
@@ -602,6 +612,7 @@
             document.getElementById('gold').value = 0;
             document.getElementById('diamond').value = 0;
             document.getElementById('checkIns').value = 0;
+            document.getElementById('receivedCheckIns').value = 0;
             document.getElementById('referrals').value = 0;
             document.getElementById('boostHours').value = 0;
             document.getElementById('targetAmount').value = 0;
